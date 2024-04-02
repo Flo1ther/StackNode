@@ -1,83 +1,122 @@
 ﻿#include <iostream>
 
 template <typename T>
-class StackNode {
+class ListNode {
 public:
     T data;
-    StackNode* next;
+    ListNode* next;
 
-    StackNode(const T& val) : data(val), next(nullptr) {}
+    ListNode(const T& val) : data(val), next(nullptr) {}
 };
 
 template <typename T>
-class Stack {
+class LinkedList {
 private:
-    StackNode<T>* topNode;
-    size_t maxSize;
-    size_t currentSize;
+    ListNode<T>* head;
 
 public:
-    Stack() : topNode(nullptr), maxSize(10), currentSize(0) {}
+    LinkedList() : head(nullptr) {}
 
-    Stack(size_t size) : topNode(nullptr), maxSize(size), currentSize(0) {}
-
-    ~Stack() {
-        while (!isEmpty()) {
-            pop();
+    ~LinkedList() {
+        while (head != nullptr) {
+            ListNode<T>* temp = head;
+            head = head->next;
+            delete temp;
         }
     }
 
-    void push(const T& val) {
-        if (currentSize >= maxSize) {
-            std::cout << "Stack overflow! Increasing stack size..." << std::endl;
-            maxSize *= 2;
+    void push_back(const T& val) {
+        if (head == nullptr) {
+            head = new ListNode<T>(val);
         }
-        StackNode<T>* newNode = new StackNode<T>(val);
-        newNode->next = topNode;
-        topNode = newNode;
-        currentSize++;
-    }
-
-    void pop() {
-        if (isEmpty()) {
-            std::cout << "Stack is empty! Cannot pop." << std::endl;
-            return;
+        else {
+            ListNode<T>* current = head;
+            while (current->next != nullptr) {
+                current = current->next;
+            }
+            current->next = new ListNode<T>(val);
         }
-        StackNode<T>* temp = topNode;
-        topNode = topNode->next;
-        delete temp;
-        currentSize--;
     }
 
-    bool isEmpty() const {
-        return topNode == nullptr;
-    }
-
-    T top() const {
-        if (isEmpty()) {
-            std::cerr << "Stack is empty! Cannot get top element." << std::endl;
-            exit(EXIT_FAILURE);
+    LinkedList<T>* clone() const {
+        LinkedList<T>* newList = new LinkedList<T>();
+        ListNode<T>* current = head;
+        while (current != nullptr) {
+            newList->push_back(current->data);
+            current = current->next;
         }
-        return topNode->data;
+        return newList;
     }
 
-    size_t size() const {
-        return currentSize;
+    LinkedList<T>* operator+(const LinkedList<T>& other) const {
+        LinkedList<T>* newList = clone();
+        ListNode<T>* current = other.head;
+        while (current != nullptr) {
+            newList->push_back(current->data);
+            current = current->next;
+        }
+        return newList;
+    }
+
+    LinkedList<T>* operator*(const LinkedList<T>& other) const {
+        LinkedList<T>* newList = new LinkedList<T>();
+        ListNode<T>* current = head;
+        while (current != nullptr) {
+            if (other.contains(current->data)) {
+                newList->push_back(current->data);
+            }
+            current = current->next;
+        }
+        return newList;
+    }
+
+    bool contains(const T& val) const {
+        ListNode<T>* current = head;
+        while (current != nullptr) {
+            if (current->data == val) {
+                return true;
+            }
+            current = current->next;
+        }
+        return false;
+    }
+
+    void print() const {
+        ListNode<T>* current = head;
+        while (current != nullptr) {
+            std::cout << current->data << " ";
+            current = current->next;
+        }
+        std::cout << std::endl;
     }
 };
 
 int main() {
-    Stack<int> stack;
+    LinkedList<int> list1;
+    list1.push_back(1);
+    list1.push_back(2);
+    list1.push_back(3);
 
-    stack.push(5);
-    stack.push(10);
-    stack.push(15);
+    LinkedList<int> list2;
+    list2.push_back(3);
+    list2.push_back(4);
+    list2.push_back(5);
 
-    std::cout << "Top element: " << stack.top() << std::endl;
-    std::cout << "Stack size: " << stack.size() << std::endl;
+    LinkedList<int>* clonedList = list1.clone();
+    std::cout << "Cloned list: ";
+    clonedList->print();
 
-    stack.pop();
-    std::cout << "Top element after pop: " << stack.top() << std::endl;
+    LinkedList<int>* mergedList = list1 + list2;
+    std::cout << "Merged list: ";
+    mergedList->print();
+
+    LinkedList<int>* commonList = list1 * list2;
+    std::cout << "Common elements list: ";
+    commonList->print();
+
+    delete clonedList;
+    delete mergedList;
+    delete commonList;
 
     return 0;
 }
